@@ -241,7 +241,7 @@ int main(void)
 
 
   HAL_TIM_Base_Start_IT(&htim15);
-      HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
+  HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -494,14 +494,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   if (htim == &htim15 )
   {
 	  int wave_out = out_state?sineLookupTable[index]: 0;
-	  	      // Get the current sine value
+	  	    // Get the current sine value
 
 
 	        // Output to DAC
 
-	  	      HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R,(uint32_t)  wave_out);
+	  	    HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R,(uint32_t)  wave_out);
 	  	    index++;
-	  	   if (index >= 9) index = 0;
+	  	    if (index >= 9) index = 0;
 
   }
 }
