@@ -1,3 +1,18 @@
+/*
+	
+   _____  _                 __                  __                    ______        __     __           
+  / ___/ (_)____   ___     / /   ____   ____   / /__ __  __ ____     /_  __/____ _ / /_   / /___   _____
+  \__ \ / // __ \ / _ \   / /   / __ \ / __ \ / //_// / / // __ \     / /  / __ `// __ \ / // _ \ / ___/
+ ___/ // // / / //  __/  / /___/ /_/ // /_/ // ,<  / /_/ // /_/ /    / /  / /_/ // /_/ // //  __/(__  ) 
+/____//_//_/ /_/ \___/  /_____/\____/ \____//_/|_| \__,_// .___/    /_/   \__,_//_.___//_/ \___//____/  
+                                                        /_/                                             
+
+This header file is used to orgainze and hold all of the data for the sine lookup tables.
+For proofs and to see how the file was generated look at our README or documentation folder
+
+
+*/
+
 #define C_SAMPLES 		383
 #define Cs_SAMPLES 		361
 #define D_SAMPLES 		341
@@ -11,6 +26,12 @@
 #define As_SAMPLES 		215
 #define B_SAMPLES 		203
 
+/*
+The following tables we made using a python script. 
+Each wave represents the note in the 4th octave sampled at a rate of 1 us. 
+The values range from 0 to (4096/12) this way the full power of the DAC is given when all waves are peaked.
+
+*/
 const int C_TABLE[] = { 171, 173, 176, 179, 182, 185, 187, 190, 193, 196, 199,
 		201, 204, 207, 210, 212, 215, 218, 220, 223, 226, 228, 231, 234, 236,
 		239, 241, 244, 246, 249, 251, 254, 256, 259, 261, 264, 266, 268, 270,

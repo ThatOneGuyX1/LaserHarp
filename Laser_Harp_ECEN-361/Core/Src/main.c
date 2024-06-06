@@ -1,4 +1,12 @@
 /* USER CODE BEGIN Header */
+/*
+    __                               __  __                  
+   / /   ____ _ _____ ___   _____   / / / /____ _ _____ ____ 
+  / /   / __ `// ___// _ \ / ___/  / /_/ // __ `// ___// __ \
+ / /___/ /_/ /(__  )/  __// /     / __  // /_/ // /   / /_/ /
+/_____/\__,_//____/ \___//_/     /_/ /_/ \__,_//_/   / .___/ 
+                                                    /_/      
+*/
 /**
   ******************************************************************************
   * @file           : main.c
@@ -21,7 +29,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "sine_tables.h"
+#include "sine_tables.h" 
 
 /* USER CODE END Includes */
 
@@ -37,6 +45,8 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+
+/* These defines represent the point in a list where that notes data is held.*/
 #define NOTE_C 0
 #define NOTE_Cs 1
 #define NOTE_D 2
@@ -61,8 +71,11 @@ TIM_HandleTypeDef htim15;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+/* Index and Active are lists that are 12 long. This is to improve spatial locality in the program.
+Using the above stated define we can thats notes data from the list*/
 int index[]= {0,0,0,0,0,0,0,0,0,0,0,0};
 int active[] = {1,1,0,1,0,0,0,0,0,0,0,0};
+
 int wave_out= 0;
 
 
@@ -117,26 +130,17 @@ int main(void)
   MX_TIM15_Init();
   /* USER CODE BEGIN 2 */
 
+  HAL_TIM_Base_Start_IT(&htim15); // Start the Music Interrupt Timer
 
+  HAL_DAC_Start(&hdac1, DAC_CHANNEL_2); // Start one of the dac channels
 
-  HAL_TIM_Base_Start_IT(&htim15);
-<<<<<<< HEAD
-
-  HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
-
-=======
-  HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
->>>>>>> a16204775680d5db05f55eea8b4c5cdb07672ee3
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-// Check if button is pressed
-
-
-
+    // No Main While needed
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -369,6 +373,16 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+/*
+
+    _   __        __     _       __              __    _                  __ __
+   / | / /____   / /_   | |     / /____   _____ / /__ (_)____   ____ _   / // /
+  /  |/ // __ \ / __/   | | /| / // __ \ / ___// //_// // __ \ / __ `/  / // / 
+ / /|  // /_/ // /_     | |/ |/ // /_/ // /   / ,<  / // / / // /_/ /  /_//_/  
+/_/ |_/ \____/ \__/     |__/|__/ \____//_/   /_/|_|/_//_/ /_/ \__, /  (_)(_)   
+                                                             /____/            
+
+*/
 	if(GPIO_Pin == NOTE_1_Pin){
 		active[NOTE_C] = active[NOTE_C]?0:1;
 	}
@@ -389,34 +403,38 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   // Check which version of the timer triggered this callback and toggle LED
   if (htim == &htim15 )
   {
-<<<<<<< HEAD
+    /* ***************************************************************
+    * This first batch of values is to look update the value for each Note.
+    * By using a list and different indexs we can speed up the program with good spatial locality
+    * If the note is active then we update the value. Otherwise we return a zero.
+    ***************************************************************************/
 	  int C_val = 	active[NOTE_C]?C_TABLE[index[NOTE_C]]:0;
 	  int Cs_val = 	active[NOTE_Cs]?C_SHARP_TABLE[index[NOTE_Cs]]:0;
 	  int D_val = 	active[NOTE_D]?D_TABLE[index[NOTE_D]]:0;
 	  int Ds_val = 	active[NOTE_Ds]?D_SHARP_TABLE[index[NOTE_Ds]]:0;
+
+    /* ***************************************************************
+    This batch of code is to just update the index if the note is active.
+    Since the active list should only ever hold a 0 or a 1, this code works. Avoid if statements
+      ***************************************************************************/
 	  index[NOTE_C] += 	active[NOTE_C];
 	  index[NOTE_Cs] += 	active[NOTE_Cs];
 	  index[NOTE_D]	+= 	active[NOTE_D];
 	  index[NOTE_Ds] += 	active[NOTE_Ds];
-	  wave_out = C_val+Cs_val+Ds_val+D_val;
-	  int temp_wave = wave_out*12/4;
-	  HAL_DAC_SetValue(&hdac1, DAC1_CHANNEL_2, DAC_ALIGN_12B_L , temp_wave);
+
+    
+	  wave_out = C_val+Cs_val+Ds_val+D_val; // Calculate the Sum of the wave
+	  int temp_wave = wave_out * 12/4; // This is for debugging purposes. Also 12/4 is to create the new offset for only using 4 notes
+	  
+    HAL_DAC_SetValue(&hdac1, DAC1_CHANNEL_2, DAC_ALIGN_12B_L , temp_wave); // Output the wave
+    /****************************************************************
+    This final batch of Code is to handle the reseting of each index.
+    
+    *********************************************************************/
 	  if(index[NOTE_C] > C_SAMPLES) index[NOTE_C] =0;
 	  if(index[NOTE_Cs] > Cs_SAMPLES) index[NOTE_Cs] =0;
 	  if(index[NOTE_D] > D_SAMPLES) index[NOTE_D] =0;
 	  if(index[NOTE_Ds] > Ds_SAMPLES) index[NOTE_Ds] =0;
-=======
-	  int wave_out = out_state?sineLookupTable[index]: 0;
-	  	    // Get the current sine value
-
-
-	        // Output to DAC
-
-	  	    HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R,(uint32_t)  wave_out);
-	  	    index++;
-	  	    if (index >= 9) index = 0;
-
->>>>>>> a16204775680d5db05f55eea8b4c5cdb07672ee3
   }
 }
 /* USER CODE END 4 */
