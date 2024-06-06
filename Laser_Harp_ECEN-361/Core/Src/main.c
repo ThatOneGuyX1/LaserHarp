@@ -120,9 +120,13 @@ int main(void)
 
 
   HAL_TIM_Base_Start_IT(&htim15);
+<<<<<<< HEAD
 
   HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
 
+=======
+  HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
+>>>>>>> a16204775680d5db05f55eea8b4c5cdb07672ee3
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -385,6 +389,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   // Check which version of the timer triggered this callback and toggle LED
   if (htim == &htim15 )
   {
+<<<<<<< HEAD
 	  int C_val = 	active[NOTE_C]?C_TABLE[index[NOTE_C]]:0;
 	  int Cs_val = 	active[NOTE_Cs]?C_SHARP_TABLE[index[NOTE_Cs]]:0;
 	  int D_val = 	active[NOTE_D]?D_TABLE[index[NOTE_D]]:0;
@@ -400,6 +405,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	  if(index[NOTE_Cs] > Cs_SAMPLES) index[NOTE_Cs] =0;
 	  if(index[NOTE_D] > D_SAMPLES) index[NOTE_D] =0;
 	  if(index[NOTE_Ds] > Ds_SAMPLES) index[NOTE_Ds] =0;
+=======
+	  int wave_out = out_state?sineLookupTable[index]: 0;
+	  	    // Get the current sine value
+
+
+	        // Output to DAC
+
+	  	    HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R,(uint32_t)  wave_out);
+	  	    index++;
+	  	    if (index >= 9) index = 0;
+
+>>>>>>> a16204775680d5db05f55eea8b4c5cdb07672ee3
   }
 }
 /* USER CODE END 4 */
