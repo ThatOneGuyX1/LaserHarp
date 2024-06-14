@@ -22,6 +22,8 @@
   * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
+  * Authors: Ian Searle
+  * Version: 1.0.0
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -74,7 +76,7 @@ UART_HandleTypeDef huart2;
 /* Index and Active are lists that are 12 long. This is to improve spatial locality in the program.
 Using the above stated define we can thats notes data from the list*/
 int index[]= {0,0,0,0,0,0,0,0,0,0,0,0};
-int active[] = {1,0,1,0,0,0,0,0,0,0,0,0};
+int active[] = {1,0,0,0,0,0,0,0,0,0,0,0};
 
 int wave_out= 0;
 
@@ -268,7 +270,7 @@ static void MX_TIM15_Init(void)
   htim15.Instance = TIM15;
   htim15.Init.Prescaler = 80-1;
   htim15.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim15.Init.Period = 10;
+  htim15.Init.Period = 9;
   htim15.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim15.Init.RepetitionCounter = 0;
   htim15.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
@@ -345,29 +347,51 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : NOTE_1_Pin NOTE_2_Pin NOTE_3_Pin NOTE_5_Pin
-                           NOTE_6_Pin NOTE_7_Pin NOTE_8_Pin NOTE_9_Pin
-                           NOTE_10_Pin NOTE_11_Pin NOTE_12_Pin */
-  GPIO_InitStruct.Pin = NOTE_1_Pin|NOTE_2_Pin|NOTE_3_Pin|NOTE_5_Pin
-                          |NOTE_6_Pin|NOTE_7_Pin|NOTE_8_Pin|NOTE_9_Pin
-                          |NOTE_10_Pin|NOTE_11_Pin|NOTE_12_Pin;
+  /*Configure GPIO pins : NOTE_1_Pin NOTE_2_Pin NOTE_3_Pin NOTE_4_Pin
+                           NOTE_5_Pin NOTE_6_Pin NOTE_7_Pin NOTE_8_Pin
+                           NOTE_9_Pin NOTE_10_Pin NOTE_11_Pin NOTE_12_Pin */
+  GPIO_InitStruct.Pin = NOTE_1_Pin|NOTE_2_Pin|NOTE_3_Pin|NOTE_4_Pin
+                          |NOTE_5_Pin|NOTE_6_Pin|NOTE_7_Pin|NOTE_8_Pin
+                          |NOTE_9_Pin|NOTE_10_Pin|NOTE_11_Pin|NOTE_12_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : NOTE_4_Pin */
-  GPIO_InitStruct.Pin = NOTE_4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  /*Configure GPIO pin : PB0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(NOTE_4_GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
@@ -377,6 +401,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 	switch (GPIO_Pin) {
 	case NOTE_1_Pin:
 		active[NOTE_C] = !active[NOTE_C];
@@ -448,40 +473,51 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     This batch of code is to just update the index if the note is active.
     Since the active list should only ever hold a 0 or a 1, this code works. Avoid if statements
       ***************************************************************************/
-	  index[NOTE_C] += 	active[NOTE_C];
-	  index[NOTE_Cs] += 	active[NOTE_Cs];
-	  index[NOTE_D]	+= 	active[NOTE_D];
-	  index[NOTE_Ds] += 	active[NOTE_Ds];
-    index[NOTE_E] += 	active[NOTE_E];
-    index[NOTE_F] += 	active[NOTE_F];
-    index[NOTE_Fs] += 	active[NOTE_Fs];
-    index[NOTE_G] += 	active[NOTE_G];
-    index[NOTE_Gs] += 	active[NOTE_Gs];
-    index[NOTE_A] += 	active[NOTE_A];
-    index[NOTE_As] += 	active[NOTE_As];
-    index[NOTE_B] += 	active[NOTE_B];
+	  index[NOTE_C] 	+= 	active[NOTE_C];
+	  index[NOTE_Cs] 	+= 	active[NOTE_Cs];
+	  index[NOTE_D]		+= 	active[NOTE_D];
+	  index[NOTE_Ds] 	+= 	active[NOTE_Ds];
+	  index[NOTE_E] 	+= 	active[NOTE_E];
+	  index[NOTE_F] 	+= 	active[NOTE_F];
+	  index[NOTE_Fs] 	+= 	active[NOTE_Fs];
+	  index[NOTE_G] 	+= 	active[NOTE_G];
+	  index[NOTE_Gs] 	+= 	active[NOTE_Gs];
+	  index[NOTE_A] 	+= 	active[NOTE_A];
+	  index[NOTE_As] 	+= 	active[NOTE_As];
+	  index[NOTE_B] 	+= 	active[NOTE_B];
 
-    
-	  wave_out = C_val+Cs_val+Ds_val+D_val+E_val+F_val+Fs_val+G_val+Gs_val+A_val+As_val+B_val; // Calculate the Sum of the wave
-	  int temp_wave = wave_out * 12/4; // This is for debugging purposes. Also 12/4 is to create the new offset for only using 4 notes
-	  
-    HAL_DAC_SetValue(&hdac1, DAC1_CHANNEL_2, DAC_ALIGN_12B_L , temp_wave); // Output the wave
-    /****************************************************************
-    This final batch of Code is to handle the reseting of each index.
-    
-    *********************************************************************/
-	  if(index[NOTE_C] > C_SAMPLES) index[NOTE_C] =0;
-	  if(index[NOTE_Cs] > Cs_SAMPLES) index[NOTE_Cs] =0;
-	  if(index[NOTE_D] > D_SAMPLES) index[NOTE_D] =0;
-	  if(index[NOTE_Ds] > Ds_SAMPLES) index[NOTE_Ds] =0;
-    if(index[NOTE_E] > E_SAMPLES) index[NOTE_E] =0;
-    if(index[NOTE_F] > F_SAMPLES) index[NOTE_F] =0;
-    if(index[NOTE_Fs] > Fs_SAMPLES) index[NOTE_Fs] =0;
-    if(index[NOTE_G] > G_SAMPLES) index[NOTE_G] =0;
-    if(index[NOTE_Gs] > Gs_SAMPLES) index[NOTE_Gs] =0;
-    if(index[NOTE_A] > A_SAMPLES) index[NOTE_A] =0;
-    if(index[NOTE_As] > As_SAMPLES) index[NOTE_As] =0;
-    if(index[NOTE_B] > B_SAMPLES) index[NOTE_B] =0;
+		wave_out = C_val + Cs_val + Ds_val + D_val + E_val + F_val + Fs_val
+				+ G_val + Gs_val + A_val + As_val + B_val; // Calculate the Sum of the wave
+		int temp_wave = wave_out * 12 / 1; // This is for debugging purposes. Also 12/4 is to create the new offset for only using 4 notes
+
+		HAL_DAC_SetValue(&hdac1, DAC1_CHANNEL_2, DAC_ALIGN_12B_L, temp_wave); // Output the wave
+		/****************************************************************
+		 This final section of Code is to handle the reseting of each index.
+		 *********************************************************************/
+		if (index[NOTE_C] > C_SAMPLES)
+			index[NOTE_C] = 0;
+		if (index[NOTE_Cs] > Cs_SAMPLES)
+			index[NOTE_Cs] = 0;
+		if (index[NOTE_D] > D_SAMPLES)
+			index[NOTE_D] = 0;
+		if (index[NOTE_Ds] > Ds_SAMPLES)
+			index[NOTE_Ds] = 0;
+		if (index[NOTE_E] > E_SAMPLES)
+			index[NOTE_E] = 0;
+		if (index[NOTE_F] > F_SAMPLES)
+			index[NOTE_F] = 0;
+		if (index[NOTE_Fs] > Fs_SAMPLES)
+			index[NOTE_Fs] = 0;
+		if (index[NOTE_G] > G_SAMPLES)
+			index[NOTE_G] = 0;
+		if (index[NOTE_Gs] > Gs_SAMPLES)
+			index[NOTE_Gs] = 0;
+		if (index[NOTE_A] > A_SAMPLES)
+			index[NOTE_A] = 0;
+		if (index[NOTE_As] > As_SAMPLES)
+			index[NOTE_As] = 0;
+		if (index[NOTE_B] > B_SAMPLES)
+			index[NOTE_B] = 0;
 
   }
 }
