@@ -32,6 +32,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "sine_tables.h" 
+#include "I2C_commands.h"
 
 /* USER CODE END Includes */
 
@@ -68,6 +69,8 @@
 /* Private variables ---------------------------------------------------------*/
 DAC_HandleTypeDef hdac1;
 
+I2C_HandleTypeDef hi2c1;
+
 TIM_HandleTypeDef htim15;
 
 UART_HandleTypeDef huart2;
@@ -80,6 +83,8 @@ int active[] = {1,0,0,0,0,0,0,0,0,0,0,0};
 
 int wave_out= 0;
 
+//char screen_out[] ={"H","e","l","l","o"};
+
 
 
 /* USER CODE END PV */
@@ -90,6 +95,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_DAC1_Init(void);
 static void MX_TIM15_Init(void);
+static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -130,11 +136,14 @@ int main(void)
   MX_USART2_UART_Init();
   MX_DAC1_Init();
   MX_TIM15_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_TIM_Base_Start_IT(&htim15); // Start the Music Interrupt Timer
 
   HAL_DAC_Start(&hdac1, DAC_CHANNEL_2); // Start one of the dac channels
+
+
 
   /* USER CODE END 2 */
 
@@ -142,7 +151,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    // No Main While needed
+
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -246,6 +257,54 @@ static void MX_DAC1_Init(void)
   /* USER CODE BEGIN DAC1_Init 2 */
 
   /* USER CODE END DAC1_Init 2 */
+
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.Timing = 0x10909CEC;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Analogue filter
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Digital filter
+  */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
 
 }
 
@@ -358,12 +417,12 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : NOTE_1_Pin NOTE_2_Pin NOTE_3_Pin NOTE_4_Pin
                            NOTE_5_Pin NOTE_6_Pin NOTE_7_Pin NOTE_8_Pin
-                           NOTE_9_Pin NOTE_10_Pin NOTE_11_Pin NOTE_12_Pin */
+                           NOTE_10_Pin NOTE_11_Pin */
   GPIO_InitStruct.Pin = NOTE_1_Pin|NOTE_2_Pin|NOTE_3_Pin|NOTE_4_Pin
                           |NOTE_5_Pin|NOTE_6_Pin|NOTE_7_Pin|NOTE_8_Pin
-                          |NOTE_9_Pin|NOTE_10_Pin|NOTE_11_Pin|NOTE_12_Pin;
+                          |NOTE_10_Pin|NOTE_11_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PB0 */
@@ -372,6 +431,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : NOTE_9_Pin NOTE_12_Pin */
+  GPIO_InitStruct.Pin = NOTE_9_Pin|NOTE_12_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
@@ -401,7 +466,6 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 	switch (GPIO_Pin) {
 	case NOTE_1_Pin:
 		active[NOTE_C] = !active[NOTE_C];
@@ -455,18 +519,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     * By using a list and different indexs we can speed up the program with good spatial locality
     * If the note is active then we update the value. Otherwise we return a zero.
     ***************************************************************************/
-	  int C_val = 	active[NOTE_C]?C_TABLE[index[NOTE_C]]:0;
-	  int Cs_val = 	active[NOTE_Cs]?Cs_TABLE[index[NOTE_Cs]]:0;
-	  int D_val = 	active[NOTE_D]?D_TABLE[index[NOTE_D]]:0;
-	  int Ds_val = 	active[NOTE_Ds]?Ds_TABLE[index[NOTE_Ds]]:0;
-	  int E_val = 	active[NOTE_E]?E_TABLE[index[NOTE_E]]:0;
-	  int F_val = 	active[NOTE_F]?F_TABLE[index[NOTE_F]]:0;
-	  int Fs_val = 	active[NOTE_Fs]?Fs_TABLE[index[NOTE_Fs]]:0;
-	  int G_val = 	active[NOTE_G]?G_TABLE[index[NOTE_G]]:0;
-	  int Gs_val = 	active[NOTE_Gs]?Gs_TABLE[index[NOTE_Gs]]:0;
-	  int A_val = 	active[NOTE_A]?A_TABLE[index[NOTE_A]]:0;
-	  int As_val = 	active[NOTE_As]?As_TABLE[index[NOTE_As]]:0;
-	  int B_val = 	active[NOTE_B]?B_TABLE[index[NOTE_B]]:0;
+	  int C_val = 	active[NOTE_C]?C_4_TABLE[index[NOTE_C]]:0;
+	  int Cs_val = 	active[NOTE_Cs]?Cs_4_TABLE[index[NOTE_Cs]]:0;
+	  int D_val = 	active[NOTE_D]?D_4_TABLE[index[NOTE_D]]:0;
+	  int Ds_val = 	active[NOTE_Ds]?Ds_4_TABLE[index[NOTE_Ds]]:0;
+	  int E_val = 	active[NOTE_E]?E_4_TABLE[index[NOTE_E]]:0;
+	  int F_val = 	active[NOTE_F]?F_4_TABLE[index[NOTE_F]]:0;
+	  int Fs_val = 	active[NOTE_Fs]?Fs_4_TABLE[index[NOTE_Fs]]:0;
+	  int G_val = 	active[NOTE_G]?G_4_TABLE[index[NOTE_G]]:0;
+	  int Gs_val = 	active[NOTE_Gs]?Gs_4_TABLE[index[NOTE_Gs]]:0;
+	  int A_val = 	active[NOTE_A]?A_4_TABLE[index[NOTE_A]]:0;
+	  int As_val = 	active[NOTE_As]?As_4_TABLE[index[NOTE_As]]:0;
+	  int B_val = 	active[NOTE_B]?B_4_TABLE[index[NOTE_B]]:0;
 
 
     /* ***************************************************************
@@ -494,29 +558,29 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		/****************************************************************
 		 This final section of Code is to handle the reseting of each index.
 		 *********************************************************************/
-		if (index[NOTE_C] > C_SAMPLES)
+		if (index[NOTE_C] > C_4_SAMPLES)
 			index[NOTE_C] = 0;
-		if (index[NOTE_Cs] > Cs_SAMPLES)
+		if (index[NOTE_Cs] > Cs_4_SAMPLES)
 			index[NOTE_Cs] = 0;
-		if (index[NOTE_D] > D_SAMPLES)
+		if (index[NOTE_D] > D_4_SAMPLES)
 			index[NOTE_D] = 0;
-		if (index[NOTE_Ds] > Ds_SAMPLES)
+		if (index[NOTE_Ds] > Ds_4_SAMPLES)
 			index[NOTE_Ds] = 0;
-		if (index[NOTE_E] > E_SAMPLES)
+		if (index[NOTE_E] > E_4_SAMPLES)
 			index[NOTE_E] = 0;
-		if (index[NOTE_F] > F_SAMPLES)
+		if (index[NOTE_F] > F_4_SAMPLES)
 			index[NOTE_F] = 0;
-		if (index[NOTE_Fs] > Fs_SAMPLES)
+		if (index[NOTE_Fs] > Fs_4_SAMPLES)
 			index[NOTE_Fs] = 0;
-		if (index[NOTE_G] > G_SAMPLES)
+		if (index[NOTE_G] > G_4_SAMPLES)
 			index[NOTE_G] = 0;
-		if (index[NOTE_Gs] > Gs_SAMPLES)
+		if (index[NOTE_Gs] > Gs_4_SAMPLES)
 			index[NOTE_Gs] = 0;
-		if (index[NOTE_A] > A_SAMPLES)
+		if (index[NOTE_A] > A_4_SAMPLES)
 			index[NOTE_A] = 0;
-		if (index[NOTE_As] > As_SAMPLES)
+		if (index[NOTE_As] > As_4_SAMPLES)
 			index[NOTE_As] = 0;
-		if (index[NOTE_B] > B_SAMPLES)
+		if (index[NOTE_B] > B_4_SAMPLES)
 			index[NOTE_B] = 0;
 
   }
