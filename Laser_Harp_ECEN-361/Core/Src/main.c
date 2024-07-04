@@ -31,7 +31,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "sine_tables.h" 
+//#include "sine_tables.h"
+#include "tranposition.h"
 #include "I2C_commands.h"
 
 /* USER CODE END Includes */
@@ -78,10 +79,9 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 /* Index and Active are lists that are 12 long. This is to improve spatial locality in the program.
 Using the above stated define we can thats notes data from the list*/
-int index[]= {0,0,0,0,0,0,0,0,0,0,0,0};
-int active[] = {1,0,0,0,0,0,0,0,0,0,0,0};
 
-int wave_out= 0;
+int index[] = {1,0,0,0,0,0,0,0,0,0,0,0};
+int active[] = {1,0,0,0,0,0,0,0,0,0,0,0};
 
 //char screen_out[] ={"H","e","l","l","o"};
 
@@ -514,75 +514,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if (htim == &htim15 )
   {
-    /* ***************************************************************
-    * This first batch of values is to look update the value for each Note.
-    * By using a list and different indexs we can speed up the program with good spatial locality
-    * If the note is active then we update the value. Otherwise we return a zero.
-    ***************************************************************************/
-	  int C_val = 	active[NOTE_C]?C_4_TABLE[index[NOTE_C]]:0;
-	  int Cs_val = 	active[NOTE_Cs]?Cs_4_TABLE[index[NOTE_Cs]]:0;
-	  int D_val = 	active[NOTE_D]?D_4_TABLE[index[NOTE_D]]:0;
-	  int Ds_val = 	active[NOTE_Ds]?Ds_4_TABLE[index[NOTE_Ds]]:0;
-	  int E_val = 	active[NOTE_E]?E_4_TABLE[index[NOTE_E]]:0;
-	  int F_val = 	active[NOTE_F]?F_4_TABLE[index[NOTE_F]]:0;
-	  int Fs_val = 	active[NOTE_Fs]?Fs_4_TABLE[index[NOTE_Fs]]:0;
-	  int G_val = 	active[NOTE_G]?G_4_TABLE[index[NOTE_G]]:0;
-	  int Gs_val = 	active[NOTE_Gs]?Gs_4_TABLE[index[NOTE_Gs]]:0;
-	  int A_val = 	active[NOTE_A]?A_4_TABLE[index[NOTE_A]]:0;
-	  int As_val = 	active[NOTE_As]?As_4_TABLE[index[NOTE_As]]:0;
-	  int B_val = 	active[NOTE_B]?B_4_TABLE[index[NOTE_B]]:0;
-
-
-    /* ***************************************************************
-    This batch of code is to just update the index if the note is active.
-    Since the active list should only ever hold a 0 or a 1, this code works. Avoid if statements
-      ***************************************************************************/
-	  index[NOTE_C] 	+= 	active[NOTE_C];
-	  index[NOTE_Cs] 	+= 	active[NOTE_Cs];
-	  index[NOTE_D]		+= 	active[NOTE_D];
-	  index[NOTE_Ds] 	+= 	active[NOTE_Ds];
-	  index[NOTE_E] 	+= 	active[NOTE_E];
-	  index[NOTE_F] 	+= 	active[NOTE_F];
-	  index[NOTE_Fs] 	+= 	active[NOTE_Fs];
-	  index[NOTE_G] 	+= 	active[NOTE_G];
-	  index[NOTE_Gs] 	+= 	active[NOTE_Gs];
-	  index[NOTE_A] 	+= 	active[NOTE_A];
-	  index[NOTE_As] 	+= 	active[NOTE_As];
-	  index[NOTE_B] 	+= 	active[NOTE_B];
-
-		wave_out = C_val + Cs_val + Ds_val + D_val + E_val + F_val + Fs_val
-				+ G_val + Gs_val + A_val + As_val + B_val; // Calculate the Sum of the wave
-		int temp_wave = wave_out * 12 / 1; // This is for debugging purposes. Also 12/4 is to create the new offset for only using 4 notes
-
-		HAL_DAC_SetValue(&hdac1, DAC1_CHANNEL_2, DAC_ALIGN_12B_L, temp_wave); // Output the wave
-		/****************************************************************
-		 This final section of Code is to handle the reseting of each index.
-		 *********************************************************************/
-		if (index[NOTE_C] > C_4_SAMPLES)
-			index[NOTE_C] = 0;
-		if (index[NOTE_Cs] > Cs_4_SAMPLES)
-			index[NOTE_Cs] = 0;
-		if (index[NOTE_D] > D_4_SAMPLES)
-			index[NOTE_D] = 0;
-		if (index[NOTE_Ds] > Ds_4_SAMPLES)
-			index[NOTE_Ds] = 0;
-		if (index[NOTE_E] > E_4_SAMPLES)
-			index[NOTE_E] = 0;
-		if (index[NOTE_F] > F_4_SAMPLES)
-			index[NOTE_F] = 0;
-		if (index[NOTE_Fs] > Fs_4_SAMPLES)
-			index[NOTE_Fs] = 0;
-		if (index[NOTE_G] > G_4_SAMPLES)
-			index[NOTE_G] = 0;
-		if (index[NOTE_Gs] > Gs_4_SAMPLES)
-			index[NOTE_Gs] = 0;
-		if (index[NOTE_A] > A_4_SAMPLES)
-			index[NOTE_A] = 0;
-		if (index[NOTE_As] > As_4_SAMPLES)
-			index[NOTE_As] = 0;
-		if (index[NOTE_B] > B_4_SAMPLES)
-			index[NOTE_B] = 0;
-
+	  int wave = tranposition__note_update();
+	  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, wave);
   }
 }
 /* USER CODE END 4 */
