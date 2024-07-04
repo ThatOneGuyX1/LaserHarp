@@ -27,8 +27,6 @@
 #define NOTE_As		10
 #define NOTE_B 		11
 
-
-
 /*
  *
  *     ____       __                      ___
@@ -36,11 +34,6 @@
  	 / / / / ___/ __/ __ `/ | / / _ \    / /
 	/ /_/ / /__/ /_/ /_/ /| |/ /  __/   / /
 	\____/\___/\__/\__,_/ |___/\___/   /_/
- *
- *
- *
- *
- *
  *
  */
 
@@ -3727,8 +3720,12 @@ const int* B_TABLES[] = {
  * Similar to the tables above. Theses list hold the samples.
  */
 
-const int C_SAMPLES[] = {C_1_SAMPLES, C_2_SAMPLES, C_3_SAMPLES, C_4_SAMPLES, C_5_SAMPLES, C_6_SAMPLES, C_7_SAMPLES};
-const int Cs_SAMPLES[] = {Cs_1_SAMPLES, Cs_2_SAMPLES, Cs_3_SAMPLES, Cs_4_SAMPLES, Cs_5_SAMPLES, Cs_6_SAMPLES, Cs_7_SAMPLES};
+const int C_SAMPLES[] = {
+		C_1_SAMPLES, C_2_SAMPLES, C_3_SAMPLES, C_4_SAMPLES, C_5_SAMPLES,
+		C_6_SAMPLES, C_7_SAMPLES};
+const int Cs_SAMPLES[] = {
+		Cs_1_SAMPLES, Cs_2_SAMPLES, Cs_3_SAMPLES, Cs_4_SAMPLES, Cs_5_SAMPLES,
+		Cs_6_SAMPLES, Cs_7_SAMPLES};
 const int D_SAMPLES[] = {D_1_SAMPLES, D_2_SAMPLES, D_3_SAMPLES, D_4_SAMPLES, D_5_SAMPLES, D_6_SAMPLES, D_7_SAMPLES};
 const int Ds_SAMPLES[] = {Ds_1_SAMPLES, Ds_2_SAMPLES, Ds_3_SAMPLES, Ds_4_SAMPLES, Ds_5_SAMPLES, Ds_6_SAMPLES, Ds_7_SAMPLES};
 const int E_SAMPLES[] = {E_1_SAMPLES, E_2_SAMPLES, E_3_SAMPLES, E_4_SAMPLES, E_5_SAMPLES, E_6_SAMPLES, E_7_SAMPLES};
